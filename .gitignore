@@ -1,0 +1,13 @@
+# Dave local data & config
+data/
+config/regions.json
+config/settings.json
+config/llm_key.txt
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/

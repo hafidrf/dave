@@ -1,0 +1,65 @@
+{
+  "_comment": "Salin ke settings.json dan sesuaikan. Semua opsional; default aman.",
+
+  "mode": "auto",
+  "_mode": "auto = live-caption (OCR seluruh layar, tanpa kalibrasi). region = pakai regions.json.",
+  "capture": {
+    "monitor": 1,
+    "max_width": 1440
+  },
+  "min_question_len": 8,
+  "ocr_width": 820,
+  "_ocr_width": "Lebar OCR (px) setelah crop. Lebih kecil = lebih cepat.",
+  "ocr_roi_left_frac": 0.60,
+  "_ocr_roi_left_frac": "Crop ke bagian kiri layar (soal+opsi quiz.com). 1.0 = seluruh layar.",
+  "ocr_min_conf": 0.5,
+  "_ocr_min_conf": "Buang teks OCR skor rendah (mis. latar animasi). 0 = matikan.",
+  "poll_interval_ms": 150,
+  "ocr_interval_ms": 450,
+  "language": "id",
+
+  "sources": {
+    "cache": true,
+    "bank": true,
+    "vision": true,
+    "_vision": "LLM multimodal (screenshot): jawab semua tipe termasuk gambar/emoji.",
+    "wiki_options": true,
+    "wikipedia": true,
+    "websearch": true,
+    "llm": true
+  },
+
+  "source_weights": {
+    "cache": 1.0,
+    "bank": 0.95,
+    "wiki_options": 0.9,
+    "wikipedia": 0.6,
+    "websearch": 0.6,
+    "llm": 0.85
+  },
+
+  "timeouts_ms": {
+    "wikipedia": 2000,
+    "websearch": 2000,
+    "llm": 2500,
+    "total_solve": 2800
+  },
+
+  "llm": {
+    "base_url": "https://api.groq.com/openai/v1",
+    "model": "llama-3.3-70b-versatile",
+    "vision_model": "meta-llama/llama-4-scout-17b-16e-instruct",
+    "api_key_env": "DAVE_LLM_KEY"
+  },
+
+  "overlay": {
+    "corner": "bottom-right",
+    "opacity": 0.92,
+    "font_size": 14
+  },
+
+  "session": {
+    "_total_questions": "0 = tanpa batas soal; isi angka >0 untuk membatasi sesi",
+    "total_questions": 0
+  }
+}

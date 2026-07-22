@@ -1,0 +1,23 @@
+# Dave - Quiz suggest assistant (Skenario A: suggest-only, no login, no auto-click)
+# Python 3.11+ (tested on 3.13, Windows)
+
+# --- Capture ---
+mss==9.0.2
+Pillow==11.0.0
+numpy==2.1.3
+
+# --- OCR (pip-only, no external binary needed; supports Python 3.13) ---
+rapidocr==3.9.1
+onnxruntime==1.27.0
+
+# --- Solve / matching ---
+rapidfuzz==3.10.1
+requests==2.32.3
+
+# --- Optional web search source (DuckDuckGo, no API key) ---
+ddgs==9.14.4
+
+# --- Optional LLM source (OpenAI-compatible: OpenAI, Groq, etc.) ---
+openai==1.57.0
+
+# Note: tkinter (overlay) ships with standard CPython on Windows, no pip needed.

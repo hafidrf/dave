@@ -1,0 +1,10 @@
+# Salin file ini menjadi:  llm_key.txt
+# lalu tempel API key Anda di baris di bawah (hapus contoh ini).
+#
+# Groq (gratis, cepat - direkomendasikan): https://console.groq.com/keys
+#   -> key diawali "gsk_..."
+# OpenAI: https://platform.openai.com/api-keys  (ubah base_url & model di settings.json)
+#
+# Baris yang diawali '#' diabaikan.
+
+gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

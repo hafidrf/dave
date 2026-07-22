@@ -1,0 +1,6 @@
+{
+  "_comment": "Format baru (2 langkah): question + options_panel. Dihasilkan calibrate.py.",
+  "monitor": 1,
+  "question": { "left": 400, "top": 80, "width": 700, "height": 120 },
+  "options_panel": { "left": 400, "top": 220, "width": 700, "height": 280 }
+}
