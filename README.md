@@ -1,47 +1,49 @@
 # Dave — Quiz Suggest Assistant
 
-Asisten lokal untuk sesi kuis (mis. boarding Jumat di Quiz.com). Bekerja seperti **Live Caption Chrome**: Dave **mengawasi layar otomatis**, **mendeteksi soal sendiri** (tanpa kalibrasi), **mencari jawaban dari banyak sumber**, lalu **menampilkan jawaban** di overlay kecil. **Anda tetap yang mengetik/mengklik jawaban.**
+**Dave** is a local desktop assistant for live quiz sessions. It watches your screen, detects questions automatically, consults multiple answer sources, and shows a concise suggestion in a small always-on-top overlay. **You remain in control** — Dave never clicks or types on your behalf.
 
-- **Mode LIVE:** Tanpa kalibrasi — Dave OCR seluruh layar & deteksi teks soal otomatis
-- **Answer-first:** Menjawab isi soal (PG maupun isian bebas), tidak bergantung opsi A/B/C/D
-- **Suggest-only:** Bukan auto-klik
-- **Login:** Tidak perlu — Dave hanya membaca layar, tidak menyentuh akun/API Quiz.com
+Think of it as **live captions for quizzes**: continuous, light-weight screen awareness, with suggestions that appear when a new question settles on screen.
 
-> Etis: Dave dipakai transparan sebagai alat bantu di sesi fun internal, bukan untuk curang di kompetisi/ujian.
+- **LIVE mode:** No manual region calibration — full-screen OCR and automatic question detection
+- **Answer-first:** Suggests the substance of the answer (multiple-choice or free text), not merely a letter A–D
+- **Suggest-only:** Assistance, not auto-play
+- **No quiz-platform login:** Dave reads the screen only; it does not call quiz-site APIs or touch your account
 
----
-
-## Cara Kerja (Mode LIVE)
-
-```
-Dave awasi layar (poll ringan ~250ms)
-   -> layar berubah lalu diam (slide baru muncul)
-   -> OCR seluruh layar, deteksi teks SOAL otomatis
-   -> solve multi-source (LLM / Wikipedia / web / cache / bank)
-   -> overlay tampilkan JAWABAN (+ petunjuk opsi jika PG)
-   -> Anda ketik / klik sendiri  ->  log latency + sumber
-```
-
-Deteksi soal memakai **perubahan layar** (murah), OCR hanya jalan saat slide baru muncul & diam — jadi ringan, mirip live caption. Teks soal dikenali otomatis (baris yang diakhiri `?` atau teks font terbesar di bagian atas).
-
-### Sumber jawaban (cepat -> lambat)
-
-| # | Sumber | Kapan | Perkiraan |
-|---|--------|-------|-----------|
-| 1 | Cache | Soal pernah muncul/dikonfirmasi | ~ms |
-| 2 | Bank lokal (SQLite) | Fuzzy match soal lama | ~ms |
-| 3 | Wiki-options (inverse lookup) | Cek artikel Wikipedia tiap opsi vs kata kunci soal | ~0.5–2 dtk |
-| 4 | Wikipedia (extracts) | Ringkasan artikel hasil pencarian | ~0.5–2 dtk |
-| 5 | Web search (DuckDuckGo) | Fakta spesifik, tanpa API key | ~1–3 dtk |
-| 6 | LLM (opsional) | Reasoning / tie-breaker soal sulit; butuh API key | ~1–2 dtk |
-
-Sumber jaringan berjalan **paralel** dengan batas waktu total (`total_solve`, default 5 dtk) dan **early-exit**: begitu bukti sudah cukup yakin (>=75%), Dave langsung menampilkan suggestion tanpa menunggu sumber lambat. Setiap kandidat dicocokkan ke opsi A/B/C/D; opsi dengan skor tertinggi jadi suggestion.
-
-> **Sumber andalan:** *wiki-options* mencari artikel Wikipedia untuk **tiap opsi**, lalu mengukur seberapa banyak kata kunci soal muncul di artikel itu — sangat akurat untuk soal entitas (planet, tokoh, negara). Untuk soal sulit/ambigu (skor mepet), aktifkan **LLM** sebagai tie-breaker.
+> **Responsible use:** Dave is intended as a transparent study and practice aid for informal or training quizzes. Do not use it to cheat in formal examinations, graded assessments, or competitive events where external assistance is prohibited.
 
 ---
 
-## Instalasi (Windows, Python 3.11+)
+## How LIVE mode works
+
+```
+Dave watches the screen (light poll ~250 ms)
+   -> screen changes, then settles (new slide/question)
+   -> full-screen OCR; question text detected automatically
+   -> multi-source solve (LLM / Wikipedia / web / cache / bank)
+   -> overlay shows the SUGGESTED ANSWER (+ option hint if MCQ)
+   -> you type or click yourself  ->  latency + source logged
+```
+
+Question detection relies on **cheap screen-change signals**. OCR runs only when the display has changed and then stabilised — similar in spirit to live captioning. Question text is inferred automatically (for example lines ending in `?`, or the most prominent heading near the top of the frame).
+
+### Answer sources (fast → slow)
+
+| # | Source | When it helps | Typical latency |
+|---|--------|---------------|-----------------|
+| 1 | Cache | Question seen or confirmed before | ~ms |
+| 2 | Local bank (SQLite) | Fuzzy match against saved Q&A | ~ms |
+| 3 | Wiki-options (inverse lookup) | Compare each option’s Wikipedia article to question keywords | ~0.5–2 s |
+| 4 | Wikipedia (extracts) | Article summaries from search | ~0.5–2 s |
+| 5 | Web search (DuckDuckGo) | Specific facts; no API key required | ~1–3 s |
+| 6 | LLM (optional) | Reasoning / tie-break on hard items; needs an API key | ~1–2 s |
+
+Network sources run **in parallel** under a shared deadline (`total_solve`, default 5 s), with **early exit**: once confidence is high enough (≥75%), Dave shows the suggestion without waiting for slower sources. Candidates are scored against options A–D when present; the highest-scoring option becomes the suggestion.
+
+> **Strong default path:** *wiki-options* fetches a Wikipedia article for **each option**, then measures how well the question’s keywords appear in that article — especially effective for entity-style questions (people, places, works, scientific names). For close or ambiguous scores, enable the **LLM** as a tie-breaker.
+
+---
+
+## Installation (Windows, Python 3.11+)
 
 ```powershell
 cd dave
@@ -50,132 +52,131 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-OCR memakai **RapidOCR (ONNX)** — tidak perlu install Tesseract terpisah.
+OCR uses **RapidOCR (ONNX)** — a separate Tesseract install is not required.
 
 ---
 
-## Setup & Menjalankan
+## Setup and running
 
-### 1. Jalankan Dave (tanpa kalibrasi)
+### 1. Start Dave (no calibration)
 
 ```powershell
 python run_dave.py
 ```
 
-Atau **double-klik ikon Dave** di desktop/taskbar. Overlay "Dave" muncul dengan status `Live — mengawasi layar...`. Buka `quiz.com`, join PIN + nama Anda, dan biarkan Dave mengawasi. Saat soal muncul, Dave otomatis membaca & menampilkan jawaban.
+Or double-click the **Dave** desktop/taskbar shortcut. The overlay appears with status such as `Live — watching screen…`. Open your quiz in the browser (or any full-screen quiz UI), join the session as usual, and leave Dave running. When a question appears, Dave reads it and shows a suggestion.
 
-> **Mode `region` (opsional, legacy):** kalau mau area terbatas hasil kalibrasi manual, set `"mode": "region"` di `config/settings.json` lalu jalankan `python calibrate.py`. Default sekarang **`auto`** (live, tanpa kalibrasi).
+> **Optional legacy `region` mode:** to restrict OCR to a calibrated rectangle, set `"mode": "region"` in `config/settings.json` and run `python calibrate.py`. The default is **`auto`** (live, no calibration).
 
-### 2. (Opsional) Setelan
+### 2. Optional settings
 
 ```powershell
 copy config\settings.example.json config\settings.json
 ```
 
-#### Aktifkan LLM (tie-breaker soal sulit — sudah ON di `settings.json`)
+#### Enable the LLM (tie-breaker — may already be on in your settings)
 
-`sources.llm` sudah `true`. Tinggal isi API key (salah satu cara):
+Ensure `sources.llm` is `true`, then supply an API key in one of these ways:
 
-**Cara 1 — file key (paling mudah, cocok untuk ikon desktop):**
+**Option A — key file (convenient with a desktop shortcut):**
 
 ```powershell
 copy config\llm_key.txt.example config\llm_key.txt
-# lalu buka config\llm_key.txt, tempel key Anda (hapus contoh)
+# open config\llm_key.txt and paste your key (remove the sample text)
 ```
 
-**Cara 2 — environment variable:**
+**Option B — environment variable:**
 
 ```powershell
 $env:DAVE_LLM_KEY = "gsk_...."
 ```
 
-Dapatkan key **Groq gratis**: https://console.groq.com/keys (key diawali `gsk_`). Untuk OpenAI/provider lain, ubah `llm.base_url` & `llm.model` di `config/settings.json`.
+A free **Groq** key works well: https://console.groq.com/keys (keys usually begin with `gsk_`). For OpenAI or another OpenAI-compatible provider, adjust `llm.base_url` and `llm.model` in `config/settings.json`.
 
-> Tanpa key pun Dave tetap jalan — sumber lain (wiki-options, wikipedia, websearch) tetap dipakai; hanya tie-breaker LLM yang nonaktif.
+> Dave still runs without an LLM key — wiki-options, Wikipedia, and web search remain available; only the LLM tie-breaker is disabled.
 
-### 3. (Opsional) Impor bank soal lama
+### 3. Optional: import a question bank
 
 ```powershell
-python tools\import_bank.py path\to\soal.csv    # kolom: question,answer
-python tools\import_bank.py path\to\soal.json   # [{"question":"...","answer":"..."}]
+python tools\import_bank.py path\to\questions.csv    # columns: question,answer
+python tools\import_bank.py path\to\questions.json   # [{"question":"...","answer":"..."}]
 ```
 
-### 4. Jalankan Dave
+### 4. Run Dave
 
 ```powershell
 python run_dave.py
 ```
 
-Overlay "Dave" muncul (always-on-top, bisa di-drag). Buka `quiz.com` -> join PIN + nama Anda -> mulai sesi. Saat host menampilkan soal, Dave otomatis membaca dan menampilkan suggestion.
+The Dave overlay stays on top and can be dragged. Start your quiz session; when the host (or app) shows a question, Dave suggests an answer.
 
-Tutup jendela overlay (atau Ctrl+C di terminal) untuk berhenti — ringkasan sesi otomatis dicetak.
+Close the overlay window (or press Ctrl+C in the terminal) to stop — a session summary is printed automatically.
 
 ---
 
-## Verifikasi Cepat (tanpa layar/jaringan)
+## Quick verification (offline)
 
 ```powershell
 python selftest.py
 ```
 
-Menguji logika bank, cache, dan scoring secara offline.
+Exercises bank, cache, and scoring logic without screen capture or network calls.
 
 ---
 
-## Output Benchmark
+## Benchmark output
 
-Tiap sesi menghasilkan `data/sessions/<timestamp>.jsonl` (satu baris per soal) dan ringkasan di terminal:
+Each session writes `data/sessions/<timestamp>.jsonl` (one line per question) and a terminal summary, for example:
 
 ```
 ====================================================
-  Dave — Ringkasan Sesi
+  Dave — Session summary
 ====================================================
-  Soal terjawab   : 20
-  Rata-rata total : 1840 ms  (median 1620 ms)
-  Tercepat        : 210 ms
-  Terlambat       : 4300 ms
-  <= 3 detik      : 18/20
-  Rata OCR/parse  : 780 ms
-  Rata solve      : 990 ms
-  Sumber dipakai  : {'wikipedia': 9, 'bank': 6, 'cache': 3, 'websearch': 2}
+  Questions answered : 20
+  Average total      : 1840 ms  (median 1620 ms)
+  Fastest            : 210 ms
+  Slowest            : 4300 ms
+  <= 3 seconds       : 18/20
+  Avg OCR/parse      : 780 ms
+  Avg solve          : 990 ms
+  Sources used       : {'wikipedia': 9, 'bank': 6, 'cache': 3, 'websearch': 2}
 ====================================================
 ```
 
 ---
 
-## Struktur
+## Layout
 
 ```
 dave/
-├── calibrate.py          # wizard kalibrasi region layar
-├── run_dave.py           # entrypoint (overlay + pipeline)
-├── selftest.py           # tes offline solver/scoring
+├── calibrate.py          # optional screen-region calibration wizard
+├── run_dave.py           # entry point (overlay + pipeline)
+├── selftest.py           # offline solver/scoring checks
 ├── requirements.txt
 ├── config/
 │   ├── regions.example.json
 │   └── settings.example.json
 ├── tools/
-│   └── import_bank.py     # impor CSV/JSON ke bank
+│   └── import_bank.py    # import CSV/JSON into the bank
 ├── src/
-│   ├── capture.py         # screenshot region (mss)
-│   ├── parse.py           # OCR -> pertanyaan + opsi (RapidOCR)
-│   ├── solve.py           # solver multi-source + scoring
-│   ├── cache.py           # cache jawaban (JSON)
-│   ├── bank.py            # bank Q&A (SQLite + fuzzy)
-│   ├── overlay.py         # overlay suggest (tkinter)
-│   ├── session_logger.py  # log + ringkasan
-│   ├── pipeline.py        # orchestrator + deteksi soal baru
-│   └── config.py          # loader konfigurasi
-└── data/                  # cache, bank, log sesi (gitignored)
+│   ├── capture.py        # region screenshot (mss)
+│   ├── parse.py          # OCR → question + options (RapidOCR)
+│   ├── solve.py          # multi-source solver + scoring
+│   ├── cache.py          # answer cache (JSON)
+│   ├── bank.py           # Q&A bank (SQLite + fuzzy match)
+│   ├── overlay.py        # suggestion overlay (tkinter)
+│   ├── session_logger.py # logging + summary
+│   ├── pipeline.py       # orchestrator + new-question detection
+│   └── config.py         # configuration loader
+└── data/                 # cache, bank, session logs (gitignored)
 ```
 
 ---
 
-## Tuning Kecepatan
+## Performance tips
 
-- **Region ketat** saat kalibrasi (jangan full-screen) → OCR lebih cepat & akurat.
-- **Impor bank** soal-soal lama → banyak yang jadi hit instan.
-- Kecilkan `timeouts_ms.total_solve` bila timer kuis ketat (mis. 2500).
-- Nyalakan **LLM** hanya jika koneksi cepat; ia fallback paling lambat.
-- Jika suggestion telat/ketinggalan, naikkan `poll_interval_ms` deteksi atau perkecil region.
-```
+- Prefer a **tight calibrated region** only if you use region mode — smaller frames mean faster, cleaner OCR.
+- **Import a bank** of familiar questions for instant cache/bank hits.
+- Lower `timeouts_ms.total_solve` when the quiz timer is strict (for example 2500).
+- Enable the **LLM** only on a reliable connection; it is the slowest fallback.
+- If suggestions arrive late, raise `poll_interval_ms` slightly or shrink the capture region.
