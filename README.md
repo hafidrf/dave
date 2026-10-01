@@ -1,10 +1,10 @@
-# Dave — Quiz Suggest Assistant
+# Dave: Quiz Suggest Assistant
 
-**Dave** is a local desktop assistant for live quiz sessions. It watches your screen, detects questions automatically, consults multiple answer sources, and shows a concise suggestion in a small always-on-top overlay. **You remain in control** — Dave never clicks or types on your behalf.
+**Dave** is a local desktop assistant for live quiz sessions. It watches your screen, detects questions automatically, consults multiple answer sources, and shows a concise suggestion in a small always-on-top overlay. **You remain in control**: Dave never clicks or types on your behalf.
 
 Think of it as **live captions for quizzes**: continuous, light-weight screen awareness, with suggestions that appear when a new question settles on screen.
 
-- **LIVE mode:** No manual region calibration — full-screen OCR and automatic question detection
+- **LIVE mode:** No manual region calibration: full-screen OCR and automatic question detection
 - **Answer-first:** Suggests the substance of the answer (multiple-choice or free text), not merely a letter A–D
 - **Suggest-only:** Assistance, not auto-play
 - **No quiz-platform login:** Dave reads the screen only; it does not call quiz-site APIs or touch your account
@@ -24,7 +24,7 @@ Dave watches the screen (light poll ~250 ms)
    -> you type or click yourself  ->  latency + source logged
 ```
 
-Question detection relies on **cheap screen-change signals**. OCR runs only when the display has changed and then stabilised — similar in spirit to live captioning. Question text is inferred automatically (for example lines ending in `?`, or the most prominent heading near the top of the frame).
+Question detection relies on **cheap screen-change signals**. OCR runs only when the display has changed and then stabilised, similar in spirit to live captioning. Question text is inferred automatically (for example lines ending in `?`, or the most prominent heading near the top of the frame).
 
 ### Answer sources (fast → slow)
 
@@ -39,7 +39,7 @@ Question detection relies on **cheap screen-change signals**. OCR runs only when
 
 Network sources run **in parallel** under a shared deadline (`total_solve`, default 5 s), with **early exit**: once confidence is high enough (≥75%), Dave shows the suggestion without waiting for slower sources. Candidates are scored against options A–D when present; the highest-scoring option becomes the suggestion.
 
-> **Strong default path:** *wiki-options* fetches a Wikipedia article for **each option**, then measures how well the question’s keywords appear in that article — especially effective for entity-style questions (people, places, works, scientific names). For close or ambiguous scores, enable the **LLM** as a tie-breaker.
+> **Strong default path:** *wiki-options* fetches a Wikipedia article for **each option**, then measures how well the question’s keywords appear in that article, especially effective for entity-style questions (people, places, works, scientific names). For close or ambiguous scores, enable the **LLM** as a tie-breaker.
 
 ---
 
@@ -52,7 +52,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-OCR uses **RapidOCR (ONNX)** — a separate Tesseract install is not required.
+OCR uses **RapidOCR (ONNX)**; a separate Tesseract install is not required.
 
 ---
 
@@ -64,7 +64,7 @@ OCR uses **RapidOCR (ONNX)** — a separate Tesseract install is not required.
 python run_dave.py
 ```
 
-Or double-click the **Dave** desktop/taskbar shortcut. The overlay appears with status such as `Live — watching screen…`. Open your quiz in the browser (or any full-screen quiz UI), join the session as usual, and leave Dave running. When a question appears, Dave reads it and shows a suggestion.
+Or double-click the **Dave** desktop/taskbar shortcut. The overlay appears with status such as `Live: watching screen…`. Open your quiz in the browser (or any full-screen quiz UI), join the session as usual, and leave Dave running. When a question appears, Dave reads it and shows a suggestion.
 
 > **Optional legacy `region` mode:** to restrict OCR to a calibrated rectangle, set `"mode": "region"` in `config/settings.json` and run `python calibrate.py`. The default is **`auto`** (live, no calibration).
 
@@ -74,18 +74,18 @@ Or double-click the **Dave** desktop/taskbar shortcut. The overlay appears with 
 copy config\settings.example.json config\settings.json
 ```
 
-#### Enable the LLM (tie-breaker — may already be on in your settings)
+#### Enable the LLM (tie-breaker; may already be on in your settings)
 
 Ensure `sources.llm` is `true`, then supply an API key in one of these ways:
 
-**Option A — key file (convenient with a desktop shortcut):**
+**Option A: key file (convenient with a desktop shortcut):**
 
 ```powershell
 copy config\llm_key.txt.example config\llm_key.txt
 # open config\llm_key.txt and paste your key (remove the sample text)
 ```
 
-**Option B — environment variable:**
+**Option B: environment variable:**
 
 ```powershell
 $env:DAVE_LLM_KEY = "gsk_...."
@@ -93,7 +93,7 @@ $env:DAVE_LLM_KEY = "gsk_...."
 
 A free **Groq** key works well: https://console.groq.com/keys (keys usually begin with `gsk_`). For OpenAI or another OpenAI-compatible provider, adjust `llm.base_url` and `llm.model` in `config/settings.json`.
 
-> Dave still runs without an LLM key — wiki-options, Wikipedia, and web search remain available; only the LLM tie-breaker is disabled.
+> Dave still runs without an LLM key; wiki-options, Wikipedia, and web search remain available; only the LLM tie-breaker is disabled.
 
 ### 3. Optional: import a question bank
 
@@ -110,7 +110,7 @@ python run_dave.py
 
 The Dave overlay stays on top and can be dragged. Start your quiz session; when the host (or app) shows a question, Dave suggests an answer.
 
-Close the overlay window (or press Ctrl+C in the terminal) to stop — a session summary is printed automatically.
+Close the overlay window (or press Ctrl+C in the terminal) to stop; a session summary is printed automatically.
 
 ---
 
@@ -130,7 +130,7 @@ Each session writes `data/sessions/<timestamp>.jsonl` (one line per question) an
 
 ```
 ====================================================
-  Dave — Session summary
+  Dave: Session summary
 ====================================================
   Questions answered : 20
   Average total      : 1840 ms  (median 1620 ms)
@@ -175,8 +175,29 @@ dave/
 
 ## Performance tips
 
-- Prefer a **tight calibrated region** only if you use region mode — smaller frames mean faster, cleaner OCR.
+- Prefer a **tight calibrated region** only if you use region mode; smaller frames mean faster, cleaner OCR.
 - **Import a bank** of familiar questions for instant cache/bank hits.
 - Lower `timeouts_ms.total_solve` when the quiz timer is strict (for example 2500).
 - Enable the **LLM** only on a reliable connection; it is the slowest fallback.
 - If suggestions arrive late, raise `poll_interval_ms` slightly or shrink the capture region.
+
+---
+
+## Training from Quiz.com references
+
+- **Ethical:** Learn from **your** session logs and public title seeds only; do not scrape live private games.
+- **Commands:**
+  ```powershell
+  python tools/seed_anime_bank.py
+  python tools/train_from_sessions.py
+  ```
+- Restart Dave after training so the updated bank is loaded.
+- Image quizzes still need vision; the bank helps when options OCR works.
+
+### All categories
+
+Quiz.com’s eight categories: Art & Literature, Entertainment, Geography, History, Languages, Science & Nature, Sports, Trivia.
+
+```powershell
+python tools/seed_all_categories.py
+```
